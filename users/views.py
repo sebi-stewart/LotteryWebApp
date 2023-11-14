@@ -8,11 +8,59 @@ import re
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
+# Valid Email address format as per Wikipedia's requirements https://en.wikipedia.org/wiki/Email_address
 def check_email(email: str):
-    email = email.lower()
-    local, domain = email.split("@", 1)
-    result = re.search("", email)
-    pass
+    email = email.lower().strip()
+
+    if not not re.search("\s+", email):
+        return None
+
+    try:
+        local_part, domain = email.split("@")
+
+        if not local_part or not domain:
+            return None
+
+        # Checking local_part
+        # Checking for ASCI characters
+        for letter in local_part:
+            if ((not re.search("\w", letter)) and
+                    (not re.search("[!#$%&'*+-/=?^_`{|}~.]", letter))):
+                return None
+
+        # Checking there isn't double . or starts/ends with .
+        if ((not not re.search("^[.]|[.]$", local_part)) or
+                (not not re.search("[.]{2}", local_part))):
+            return None
+
+        # Checking domain
+        # Checking latin letters
+        if not re.search("[a-z]+", domain):
+            return None
+
+        # Checking there isn't double . or starts/ends with .
+        if ((not not re.search("^[.]|[.]$", domain)) or
+                (not not re.search("[.]{2}", domain))):
+            return None
+
+        # Checking there isn't double . or starts/ends with .
+        if not not re.search("^[-]|[-]$", domain):
+            return None
+
+        # Remove hyphens and dots to stop false trigger on non word line
+        domain = domain.replace(".", "")
+        domain = domain.replace("-", "")
+
+        # Checking for non word characters including underscore _
+        if ((not not re.search("\W", domain)) or
+            (not not re.search("_", domain))):
+            return None
+
+        return email
+
+    except ValueError as er:
+        print(er)
+        return None
 
 
 # VIEWS
@@ -66,3 +114,7 @@ def account():
                            firstname="PLACEHOLDER FOR USER FIRSTNAME",
                            lastname="PLACEHOLDER FOR USER LASTNAME",
                            phone="PLACEHOLDER FOR USER PHONE")
+
+
+if __name__ == "__main__":
+    print(check_email("seb!1238s-.as@gm.123x-xx"))
