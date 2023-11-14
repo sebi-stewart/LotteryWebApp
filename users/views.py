@@ -8,6 +8,7 @@ import re
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
+
 # Valid Email address format as per Wikipedia's requirements https://en.wikipedia.org/wiki/Email_address
 def check_email(email: str):
     email = email.lower().strip()
@@ -22,7 +23,7 @@ def check_email(email: str):
             return None
 
         # Checking local_part
-        # Checking for ASCI characters
+        # Checking for ASCII characters
         for letter in local_part:
             if ((not re.search("\w", letter)) and
                     (not re.search("[!#$%&'*+-/=?^_`{|}~.]", letter))):
@@ -44,7 +45,7 @@ def check_email(email: str):
             return None
 
         # Checking there isn't double . or starts/ends with .
-        if not not re.search("^[-]|[-]$", domain):
+        if not not re.search("^-|-$", domain):
             return None
 
         # Remove hyphens and dots to stop false trigger on non word line
@@ -53,7 +54,7 @@ def check_email(email: str):
 
         # Checking for non word characters including underscore _
         if ((not not re.search("\W", domain)) or
-            (not not re.search("_", domain))):
+                (not not re.search("_", domain))):
             return None
 
         return email
@@ -61,6 +62,12 @@ def check_email(email: str):
     except ValueError as er:
         print(er)
         return None
+
+
+def check_name(name: str):
+    if not not re.search("[*?!'^+%&/()=}\]\[{$#@<>]", name):
+        return None
+    return name.strip()
 
 
 # VIEWS
@@ -117,4 +124,6 @@ def account():
 
 
 if __name__ == "__main__":
-    print(check_email("seb!1238s-.as@gm.123x-xx"))
+    print(check_email("123@gm.123x-xx"))
+    print(check_name("Hey"))
+    print(check_name("Seb "))
