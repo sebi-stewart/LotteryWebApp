@@ -69,6 +69,33 @@ def check_name(name: str):
         return None
     return name.strip()
 
+def check_phone(phone: str):
+    # Remove whitespace and dashes
+    phone = phone.replace(" ", "")
+    phone = phone.replace("-", "")
+
+    if not re.search("[0-9]{11}", phone):
+        return None
+    return phone[0:4] + "-" + phone[4:7] + "-" + phone[7:]
+
+
+def check_password(password: str):
+
+    # Checks for digit, lowercase, uppercase, special character
+    if not re.search("[0-9]", password):
+        return None
+    if not re.search("[a-z]", password):
+        return None
+    if not re.search("[A-Z]", password):
+        return None
+    if not re.search("[^a-zA-Z\d\s]", password):
+        return None
+
+    # Return none if it contains whitespace
+    if not not re.search("\s", password):
+        return None
+
+    return password
 
 # VIEWS
 # view registration
@@ -127,3 +154,5 @@ if __name__ == "__main__":
     print(check_email("123@gm.123x-xx"))
     print(check_name("Hey"))
     print(check_name("Seb "))
+    print(check_phone("0772-199 1238"))
+    print(check_password("123abcABC@@"))
