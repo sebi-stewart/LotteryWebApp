@@ -39,7 +39,7 @@ class User(db.Model, UserMixin):
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
             name=self.email,
-            issuer_name='CSC2031 Blog')
+            issuer_name='Stewart Foundation')
         )
 
 

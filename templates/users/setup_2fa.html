@@ -2,10 +2,12 @@
 
 {% block content %}
 
-    <h3 class="title is-3">AUTHENTICATION</h3>
+    <h3 class="title is-3">SETUP 2FA</h3>
 
     <p>To set up 2-factor authentication under the account name {{ username }},
 scan the following QR code with your smartphone's authenticator app:</p>
+
+    <br>
 
     <p><img src="{{ qrcode(uri, box_size=5, border=5) }}" alt=""></p>
 

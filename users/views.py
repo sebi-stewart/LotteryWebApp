@@ -10,10 +10,12 @@ import re
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 
+
 # Valid Email address format as per Wikipedia's requirements https://en.wikipedia.org/wiki/Email_address
 def check_email(email: str):
     email = email.lower().strip()
 
+    # Makes sure there isn't any whitespace in the email
     if not not re.search("\s+", email):
         return None
 
@@ -64,13 +66,13 @@ def check_email(email: str):
         print(er)
         return None
 
-
+# Checks name doesn't have special characters
 def check_name(name: str):
     if not not re.search("[*?!'^+%&/()=}\]\[{$#@<>]", name):
         return None
     return name.strip()
 
-
+# Checks phone number is in correct format
 def check_phone(phone: str):
     # Remove whitespace and dashes
     # phone = phone.replace(" ", "")
@@ -80,7 +82,7 @@ def check_phone(phone: str):
         return None
     return phone
 
-
+# Checks password meets requirements
 def check_password(password: str):
     # Checks for digit, lowercase, uppercase, special character
     if not re.search("[0-9]", password):
@@ -96,12 +98,13 @@ def check_password(password: str):
     if not not re.search("\s", password):
         return None
 
+    # Make sure password is between 6-12 characters
     if len(password) < 6 or len(password) > 12:
         return None
 
     return password
 
-
+# Check that confirm_password is the same as password
 def verify_password(password, confirm):
     return password == confirm
 
@@ -132,6 +135,7 @@ def register():
         password = check_password(form.password.data)
         pass_verify = verify_password(form.password.data, form.confirm_password.data)
 
+        # Notifying user if their input was invalid
         if not email:
             flash("Email address invalid")
             return render_template('users/register.html', form=form)
@@ -165,6 +169,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        # Adding the current users email to the session
         session['username'] = new_user.email
 
         # sends user to login page
@@ -172,11 +177,14 @@ def register():
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
 
+
 @users_blueprint.route('/setup_2fa')
 def setup_2fa():
+    # Checking if the user/email is in session
     if 'username' not in session:
         return redirect(url_for('main.index'))
 
+    # Check if the
     user = User.query.filter_by(email=session['username']).first()
     if not user:
         return redirect(url_for('main.index'))
@@ -209,6 +217,7 @@ def account():
                            phone="PLACEHOLDER FOR USER PHONE")
 
 
+# Test cases for email/name/etc
 if __name__ == "__main__":
     print(check_email("123@gm.123x-xx"))
     print(check_name("Hey"))
