@@ -4,115 +4,12 @@ from flask import Blueprint, render_template, flash, redirect, url_for, session
 from app import db
 from models import User
 from users.forms import RegisterForm
-import re
+from users.data_checks import *
+
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
-
-# main_blueprint = Blueprint('main', __name__, template_folder='templates')
-
-
-# Valid Email address format as per Wikipedia's requirements https://en.wikipedia.org/wiki/Email_address
-def check_email(email: str):
-    email = email.lower().strip()
-
-    # Makes sure there isn't any whitespace in the email
-    if not not re.search("\s+", email):
-        return None
-
-    try:
-        local_part, domain = email.split("@")
-
-        if not local_part or not domain:
-            return None
-
-        # Checking local_part
-        # Checking for ASCII characters
-        for letter in local_part:
-            if ((not re.search("\w", letter)) and
-                    (not re.search("[!#$%&'*+-/=?^_`{|}~.]", letter))):
-                return None
-
-        # Checking there isn't double . or starts/ends with .
-        if ((not not re.search("^[.]|[.]$", local_part)) or
-                (not not re.search("[.]{2}", local_part))):
-            return None
-
-        # Checking domain
-        # Checking latin letters
-        if not re.search("[a-z]+", domain):
-            return None
-
-        # Checking there isn't double . or starts/ends with .
-        if ((not not re.search("^[.]|[.]$", domain)) or
-                (not not re.search("[.]{2}", domain))):
-            return None
-
-        # Checking there isn't double . or starts/ends with .
-        if not not re.search("^-|-$", domain):
-            return None
-
-        # Remove hyphens and dots to stop false trigger on non word line
-        domain = domain.replace(".", "")
-        domain = domain.replace("-", "")
-
-        # Checking for non word characters including underscore _
-        if ((not not re.search("\W", domain)) or
-                (not not re.search("_", domain))):
-            return None
-
-        return email
-
-    except ValueError as er:
-        print(er)
-        return None
-
-
-# Checks name doesn't have special characters
-def check_name(name: str):
-    if not not re.search("[*?!'^+%&/()=}\]\[{$#@<>]", name):
-        return None
-    return name.strip()
-
-
-# Checks phone number is in correct format
-def check_phone(phone: str):
-    # Remove whitespace and dashes
-    # phone = phone.replace(" ", "")
-    # phone = phone.replace("-", "")
-
-    if not re.search("^[0-9]{4}-[0-9]{3}-[0-9]{4}$", phone):
-        return None
-    return phone
-
-
-# Checks password meets requirements
-def check_password(password: str):
-    # Checks for digit, lowercase, uppercase, special character
-    if not re.search("[0-9]", password):
-        return None
-    if not re.search("[a-z]", password):
-        return None
-    if not re.search("[A-Z]", password):
-        return None
-    if not re.search("[^a-zA-Z\d\s]", password):
-        return None
-
-    # Return none if it contains whitespace
-    if not not re.search("\s", password):
-        return None
-
-    # Make sure password is between 6-12 characters
-    if len(password) < 6 or len(password) > 12:
-        return None
-
-    return password
-
-
-# Check that confirm_password is the same as password
-def verify_password(password, confirm):
-    return password == confirm
 
 
 # VIEWS
@@ -140,6 +37,8 @@ def register():
         phone = check_phone(form.phone.data)
         password = check_password(form.password.data)
         pass_verify = verify_password(form.password.data, form.confirm_password.data)
+        date_of_birth = check_date_of_birth(form.date_of_birth.data)
+        postcode = check_postcode(form.postcode.data)
 
         # Notifying user if their input was invalid
         if not email:
@@ -152,7 +51,7 @@ def register():
             flash("Last name invalid")
             return render_template('users/register.html', form=form)
         if not phone:
-            flash("Phone number invalid (XXXX-XXX-XXXX)")
+            flash("Phone number invalid, must be in format XXXX-XXX-XXXX")
             return render_template('users/register.html', form=form)
         if not password:
             flash("Password invalid, must be between 6-12 characters long, contain uppercase, lowercase, number and "
@@ -160,6 +59,12 @@ def register():
             return render_template('users/register.html', form=form)
         if not pass_verify:
             flash("Passwords don't match")
+            return render_template('users/register.html', form=form)
+        if not date_of_birth:
+            flash("Date of birth invalid, must be in format DD/MM/YYYY")
+            return render_template('users/register.html', form=form)
+        if not postcode:
+            flash("Postcode invalid, must be in format 'XY YXX', 'XYY YXX' or 'XXY YXX'")
             return render_template('users/register.html', form=form)
 
         # create a new user with the form data
@@ -169,7 +74,9 @@ def register():
                         phone=form.phone.data,
                         password=form.password.data,
                         role='user',
-                        pin_key=pyotp.random_base32())
+                        pin_key=pyotp.random_base32(),
+                        date_of_birth=form.date_of_birth.data,
+                        postcode=form.postcode.data)
 
         # add the new user to the database
         db.session.add(new_user)
@@ -222,10 +129,3 @@ def account():
                            phone="PLACEHOLDER FOR USER PHONE")
 
 
-# Test cases for email/name/etc
-if __name__ == "__main__":
-    print(check_email("123@gm.123x-xx"))
-    print(check_name("Hey"))
-    print(check_name("Seb "))
-    print(check_phone("0772-199 1238"))
-    print(check_password("123abcABC@@"))
