@@ -4,8 +4,10 @@ from app import db, app
 from flask_login import UserMixin
 
 
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -20,22 +22,30 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(100), nullable=False, default='user')
 
     # User PIN
-    pin = db.Column(db.String(32), nullable=False, default=pyotp.random_base32())
+    pin_key = db.Column(db.String(32), nullable=False, default=pyotp.random_base32())
 
     # Define the relationship to Draw
-    draws = db.relationship('Draw')
+    draws = db.relationship('models.Draw')
 
-    def __init__(self, email, firstname, lastname, phone, password, role):
+    def __init__(self, email, firstname, lastname, phone, password, role, pin_key):
         self.email = email
         self.firstname = firstname
         self.lastname = lastname
         self.phone = phone
         self.password = password
         self.role = role
+        self.pin_key = pin_key
+
+    def get_2fa_uri(self):
+        return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
+            name=self.email,
+            issuer_name='CSC2031 Blog')
+        )
 
 
 class Draw(db.Model):
     __tablename__ = 'draws'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -75,7 +85,12 @@ def init_db():
                      firstname='Alice',
                      lastname='Jones',
                      phone='0191-123-4567',
-                     role='admin')
+                     role='admin',
+                     pin_key='BFB5S34STBLZCOB22K6PPYDCMZMH46OJ')
 
         db.session.add(admin)
         db.session.commit()
+
+
+if __name__ == '__main__':
+    init_db()

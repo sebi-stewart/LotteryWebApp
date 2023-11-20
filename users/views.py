@@ -1,5 +1,6 @@
 # IMPORTS
-from flask import Blueprint, render_template, flash, redirect, url_for
+import pyotp
+from flask import Blueprint, render_template, flash, redirect, url_for, session
 from app import db
 from models import User
 from users.forms import RegisterForm
@@ -69,6 +70,7 @@ def check_name(name: str):
         return None
     return name.strip()
 
+
 def check_phone(phone: str):
     # Remove whitespace and dashes
     # phone = phone.replace(" ", "")
@@ -80,7 +82,6 @@ def check_phone(phone: str):
 
 
 def check_password(password: str):
-
     # Checks for digit, lowercase, uppercase, special character
     if not re.search("[0-9]", password):
         return None
@@ -104,6 +105,7 @@ def check_password(password: str):
 def verify_password(password, confirm):
     return password == confirm
 
+
 # VIEWS
 # view registration
 @users_blueprint.route('/register', methods=['GET', 'POST'])
@@ -124,10 +126,10 @@ def register():
 
         # Checking user input
         email = check_email(form.email.data)
-        first_name = check_name(form.email.data)
-        last_name = check_name(form.email.data)
-        phone = check_phone(form.email.data)
-        password = check_password(form.email.data)
+        first_name = check_name(form.firstname.data)
+        last_name = check_name(form.lastname.data)
+        phone = check_phone(form.phone.data)
+        password = check_password(form.password.data)
         pass_verify = verify_password(form.password.data, form.confirm_password.data)
 
         if not email:
@@ -150,23 +152,44 @@ def register():
             flash("Passwords don't match")
             return render_template('users/register.html', form=form)
 
-
         # create a new user with the form data
         new_user = User(email=form.email.data,
                         firstname=form.firstname.data,
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
-                        role='user')
+                        role='user',
+                        pin_key=pyotp.random_base32())
 
         # add the new user to the database
         db.session.add(new_user)
         db.session.commit()
 
+        session['username'] = new_user.email
+
         # sends user to login page
-        return redirect(url_for('users.login'))
+        return redirect(url_for('users.setup_2fa'))
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
+
+@users_blueprint.route('/setup_2fa')
+def setup_2fa():
+    if 'username' not in session:
+        return redirect(url_for('main.index'))
+
+    user = User.query.filter_by(email=session['username']).first()
+    if not user:
+        return redirect(url_for('main.index'))
+
+    del session['username']
+
+    return (render_template('users/setup_2fa.html', username=user.email, uri=user.get_2fa_uri()),
+            200, {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            })
+
 
 
 # view user login
