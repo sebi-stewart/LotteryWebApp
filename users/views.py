@@ -10,6 +10,8 @@ import re
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 
+# main_blueprint = Blueprint('main', __name__, template_folder='templates')
+
 
 # Valid Email address format as per Wikipedia's requirements https://en.wikipedia.org/wiki/Email_address
 def check_email(email: str):
@@ -66,11 +68,13 @@ def check_email(email: str):
         print(er)
         return None
 
+
 # Checks name doesn't have special characters
 def check_name(name: str):
     if not not re.search("[*?!'^+%&/()=}\]\[{$#@<>]", name):
         return None
     return name.strip()
+
 
 # Checks phone number is in correct format
 def check_phone(phone: str):
@@ -81,6 +85,7 @@ def check_phone(phone: str):
     if not re.search("^[0-9]{4}-[0-9]{3}-[0-9]{4}$", phone):
         return None
     return phone
+
 
 # Checks password meets requirements
 def check_password(password: str):
@@ -103,6 +108,7 @@ def check_password(password: str):
         return None
 
     return password
+
 
 # Check that confirm_password is the same as password
 def verify_password(password, confirm):
@@ -182,12 +188,12 @@ def register():
 def setup_2fa():
     # Checking if the user/email is in session
     if 'username' not in session:
-        return redirect(url_for('main.index'))
+        return redirect('/')
 
     # Check if the
     user = User.query.filter_by(email=session['username']).first()
     if not user:
-        return redirect(url_for('main.index'))
+        return redirect('/')
 
     del session['username']
 
@@ -197,7 +203,6 @@ def setup_2fa():
                 'Pragma': 'no-cache',
                 'Expires': '0'
             })
-
 
 
 # view user login
