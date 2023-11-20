@@ -71,12 +71,12 @@ def check_name(name: str):
 
 def check_phone(phone: str):
     # Remove whitespace and dashes
-    phone = phone.replace(" ", "")
-    phone = phone.replace("-", "")
+    # phone = phone.replace(" ", "")
+    # phone = phone.replace("-", "")
 
-    if not re.search("[0-9]{11}", phone):
+    if not re.search("^[0-9]{4}-[0-9]{3}-[0-9]{4}$", phone):
         return None
-    return phone[0:4] + "-" + phone[4:7] + "-" + phone[7:]
+    return phone
 
 
 def check_password(password: str):
@@ -95,7 +95,14 @@ def check_password(password: str):
     if not not re.search("\s", password):
         return None
 
+    if len(password) < 6 or len(password) > 12:
+        return None
+
     return password
+
+
+def verify_password(password, confirm):
+    return password == confirm
 
 # VIEWS
 # view registration
@@ -114,6 +121,35 @@ def register():
         if user:
             flash('Email address already exists')
             return render_template('users/register.html', form=form)
+
+        # Checking user input
+        email = check_email(form.email.data)
+        first_name = check_name(form.email.data)
+        last_name = check_name(form.email.data)
+        phone = check_phone(form.email.data)
+        password = check_password(form.email.data)
+        pass_verify = verify_password(form.password.data, form.confirm_password.data)
+
+        if not email:
+            flash("Email address invalid")
+            return render_template('users/register.html', form=form)
+        if not first_name:
+            flash("First name invalid")
+            return render_template('users/register.html', form=form)
+        if not last_name:
+            flash("Last name invalid")
+            return render_template('users/register.html', form=form)
+        if not phone:
+            flash("Phone number invalid (XXXX-XXX-XXXX)")
+            return render_template('users/register.html', form=form)
+        if not password:
+            flash("Password invalid, must be between 6-12 characters long, contain uppercase, lowercase, number and "
+                  "special character")
+            return render_template('users/register.html', form=form)
+        if not pass_verify:
+            flash("Passwords don't match")
+            return render_template('users/register.html', form=form)
+
 
         # create a new user with the form data
         new_user = User(email=form.email.data,
