@@ -12,3 +12,12 @@ class RegisterForm(FlaskForm):
     date_of_birth = StringField()
     postcode = StringField()
     submit = SubmitField()
+
+
+# Login Form for login page
+class LoginForm(FlaskForm):
+    email = StringField()
+    password = PasswordField()
+    captcha_pin = StringField()
+    reCaptcha = StringField()
+    submit = SubmitField()

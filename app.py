@@ -35,6 +35,19 @@ app.register_blueprint(users_blueprint)
 app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
 
+
+# Login Manager
+from flask_login import LoginManager
+login_manager = LoginManager()
+login_manager.login_view = 'users.login'
+login_manager.init_app(app)
+
+
+from models import User
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
 # Error handling for Errors: 400,403,404,500,503
 @app.errorhandler(400)
 def bad_request(error):

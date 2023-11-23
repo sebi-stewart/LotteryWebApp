@@ -1,9 +1,10 @@
 # IMPORTS
 import pyotp
 from flask import Blueprint, render_template, flash, redirect, url_for, session
+from flask_login import login_user, current_user
 from app import db
 from models import User
-from users.forms import RegisterForm
+from users.forms import RegisterForm, LoginForm
 from users.data_checks import *
 
 
@@ -16,7 +17,6 @@ users_blueprint = Blueprint('users', __name__, template_folder='templates')
 # view registration
 @users_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
-    print("Hello")
     # create signup form object
     form = RegisterForm()
 
@@ -113,19 +113,40 @@ def setup_2fa():
 
 
 # view user login
-@users_blueprint.route('/login')
+@users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('users/login.html')
+    # Creating login form
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        # if email or password doesn't exist, we output the same message
+        if not user or not user.verify_password(form.password.data):
+            flash("Email or Password doesn't exist")
+            return render_template('users/login.html', form=form)
+
+        login_user(user)
+
+        return redirect(url_for('users.account'))
+
+    return render_template('users/login.html', form=form)
 
 
 # view user account
 @users_blueprint.route('/account')
 def account():
+    if current_user.is_anonymous:
+        return render_template('users/account.html',
+                               acc_no="PLACEHOLDER FOR USER ID",
+                               email="PLACEHOLDER FOR USER EMAIL",
+                               firstname="PLACEHOLDER FOR USER FIRSTNAME",
+                               lastname="PLACEHOLDER FOR USER LASTNAME",
+                               phone="PLACEHOLDER FOR USER PHONE")
     return render_template('users/account.html',
-                           acc_no="PLACEHOLDER FOR USER ID",
-                           email="PLACEHOLDER FOR USER EMAIL",
-                           firstname="PLACEHOLDER FOR USER FIRSTNAME",
-                           lastname="PLACEHOLDER FOR USER LASTNAME",
-                           phone="PLACEHOLDER FOR USER PHONE")
+                           acc_no=current_user.id,
+                           email=current_user.email,
+                           firstname=current_user.firstname,
+                           lastname=current_user.lastname,
+                           phone=current_user.phone)
 
 

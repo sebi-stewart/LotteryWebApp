@@ -49,6 +49,9 @@ class User(db.Model, UserMixin):
             issuer_name='Stewart Foundation')
         )
 
+    def verify_password(self, password):
+        return self.password == password
+
 
 class Draw(db.Model):
     __tablename__ = 'draws'
