@@ -44,10 +44,11 @@
                             <a href="{{ url_for('users.account') }}" class="navbar-item">
                                 Account
                             </a>
-                            {#TODO: LOGOUT#}
-                            <a href="" class="navbar-item">
-                                Logout
+                           {% if not current_user.is_anonymous%}
+                            <a href="{{ url_for('users.logout')}}" class="navbar-item">
+                                Log out
                             </a>
+                           {% endif %}
                        </div>
                     </div>
                 </div>
