@@ -1,6 +1,6 @@
 import re
 
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
 
@@ -116,7 +116,9 @@ class LoginForm(FlaskForm):
     password = PasswordField(label='Password', validators=[
         DataRequired(message='Password is required')
     ])
-    captcha_pin = StringField()
-    reCaptcha = StringField()
+    pin = StringField(label='Pin', validators=[
+        DataRequired(message='PIN is required')
+    ])
+    reCaptcha = RecaptchaField()
     submit = SubmitField()
 

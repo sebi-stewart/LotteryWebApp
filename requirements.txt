@@ -7,3 +7,4 @@ WTForms
 flask-qrcode
 email_validator
 MarkupSafe
+python-dotenv

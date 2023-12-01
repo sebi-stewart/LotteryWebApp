@@ -52,6 +52,8 @@ class User(db.Model, UserMixin):
     def verify_password(self, password):
         return self.password == password
 
+    def verify_pin(self, submitted_pin):
+        return pyotp.TOTP(self.pin_key).verify(submitted_pin)
 
 class Draw(db.Model):
     __tablename__ = 'draws'

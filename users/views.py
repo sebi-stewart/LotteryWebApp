@@ -85,18 +85,21 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
+        # Check if login attempts have been exceeded
         if session['attempts'] >= 3:
             flash(Markup('Number of incorrect login attempts exceeded. '
                          'Please click <a href="/reset">here</a> to reset.'))
             return render_template('users/login.html', form=form)
 
         user = User.query.filter_by(email=form.email.data).first()
+
         # if email or password doesn't exist, we output the same message
         if (not user
                 or not user.verify_password(form.password.data)
-                or not True):
+                or not user.verify_pin(form.pin.data)):
             session['attempts'] += 1
 
+            # Check if login attempts have been exceeded
             if session['attempts'] >= 3:
                 flash(Markup('Number of incorrect login attempts exceeded. '
                              'Please click <a href="/reset">here</a> to reset.'))
