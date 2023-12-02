@@ -1,7 +1,7 @@
 # IMPORTS
 import pyotp
 from flask import Blueprint, render_template, flash, redirect, url_for, session
-from flask_login import login_user, current_user, logout_user, login_required
+from flask_login import login_user, current_user, logout_user
 from app import db
 from models import User
 from users.forms import RegisterForm, LoginForm
@@ -16,6 +16,7 @@ users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 # view registration
 @users_blueprint.route('/register', methods=['GET', 'POST'])
+@required_roles('anonymous', 'admin')
 def register():
     # create signup form object
     form = RegisterForm()
@@ -58,6 +59,7 @@ def register():
 
 
 @users_blueprint.route('/setup_2fa')
+@required_roles('anonymous')
 def setup_2fa():
     # Checking if the user/email is in session
     if 'username' not in session:
@@ -80,6 +82,7 @@ def setup_2fa():
 
 # view user login
 @users_blueprint.route('/login', methods=['GET', 'POST'])
+@required_roles('anonymous')
 def login():
     # Creating login form
 
@@ -130,6 +133,7 @@ def login():
 
 
 @users_blueprint.route('/reset')
+@required_roles('anonymous')
 def reset():
     session['attempts'] = 0
     return redirect(url_for('users.login'))

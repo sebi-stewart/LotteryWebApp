@@ -1,6 +1,6 @@
 # IMPORTS
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
+from flask_login import current_user
 
 from app import db
 from lottery.forms import DrawForm
@@ -14,7 +14,6 @@ lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
 # VIEWS
 # view lottery page
 @lottery_blueprint.route('/lottery')
-@login_required
 @required_roles('user')
 def lottery():
     return render_template('lottery/lottery.html',
@@ -23,7 +22,6 @@ def lottery():
 
 # view all draws that have not been played
 @lottery_blueprint.route('/create_draw', methods=['POST'])
-@login_required
 @required_roles('user')
 def create_draw():
     form = DrawForm()
@@ -52,7 +50,6 @@ def create_draw():
 
 # view all draws that have not been played
 @lottery_blueprint.route('/view_draws', methods=['POST'])
-@login_required
 @required_roles('user')
 def view_draws():
     # get all draws that have not been played [played=0]
@@ -72,7 +69,6 @@ def view_draws():
 
 # view lottery results
 @lottery_blueprint.route('/check_draws', methods=['POST'])
-@login_required
 @required_roles('user')
 def check_draws():
     # get played draws
@@ -94,7 +90,6 @@ def check_draws():
 
 # delete all played draws
 @lottery_blueprint.route('/play_again', methods=['POST'])
-@login_required
 @required_roles('user')
 def play_again():
     # Again, only delete draws made by current user
