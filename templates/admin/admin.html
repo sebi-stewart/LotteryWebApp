@@ -120,5 +120,18 @@
         </div>
     </div>
 
+<div class="column is-4 is-offset-4" id="test">
+    <h4 class="title is-4">New Admins</h4>
+    <div class="box">
+        <form action="{{ url_for('users.register') }}">
+            <div>
+                <button class="button is-info is-centered">Add Admin</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
 
 {% endblock %}

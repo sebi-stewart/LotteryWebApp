@@ -48,8 +48,11 @@ def register():
         # Adding the current users email to the session
         session['username'] = new_user.email
 
-        # sends user to login page
-        return redirect(url_for('users.setup_2fa'))
+        # sends user to 2FA page
+        if new_user.role == 'user':
+            return redirect(url_for('users.setup_2fa'))
+        elif new_user.role == 'admin':
+            return redirect(url_for('admin.admin'))
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
 
@@ -133,7 +136,6 @@ def reset():
 
 
 @users_blueprint.route('/logout')
-@login_required
 @required_roles('user', 'admin')
 def logout():
     logout_user()
@@ -142,7 +144,6 @@ def logout():
 
 # view user account
 @users_blueprint.route('/account')
-@login_required
 @required_roles('user', 'admin')
 def account():
     if current_user.is_anonymous:
