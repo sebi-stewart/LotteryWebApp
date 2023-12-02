@@ -31,13 +31,22 @@ def register():
             flash('Email address already exists')
             return render_template('users/register.html', form=form)
 
+        # Check if we are logged in (as admin) or if we are anonymous
+        # If we don't do the first check and only use current_user.rol, it would throw an error if the user is anonymous
+        if not current_user.is_authenticated:
+            role = 'user'
+        elif current_user.role == 'admin':
+            role = 'admin'
+        else:
+            role = 'user'
+
         # create a new user with the form data
         new_user = User(email=form.email.data,
                         firstname=form.firstname.data,
                         lastname=form.lastname.data,
                         phone=form.phone.data,
                         password=form.password.data,
-                        role='user',
+                        role=role,
                         pin_key=pyotp.random_base32(),
                         date_of_birth=form.date_of_birth.data,
                         postcode=form.postcode.data)
@@ -53,6 +62,7 @@ def register():
         if new_user.role == 'user':
             return redirect(url_for('users.setup_2fa'))
         elif new_user.role == 'admin':
+            flash(f'A new Admin User ({new_user.lastname}, {new_user.firstname}) has been registered successfully!')
             return redirect(url_for('admin.admin'))
     # if request method is GET or form not valid re-render signup page
     return render_template('users/register.html', form=form)
