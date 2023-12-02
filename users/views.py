@@ -1,17 +1,19 @@
 # IMPORTS
 import pyotp
 from flask import Blueprint, render_template, flash, redirect, url_for, session
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, current_user, logout_user, login_required
 from app import db
 from models import User
 from users.forms import RegisterForm, LoginForm
 from markupsafe import Markup
+from roles import required_roles
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 
 # VIEWS
+
 # view registration
 @users_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
@@ -85,8 +87,8 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        # Check if login attempts have been exceeded
-        if session['attempts'] >= 3:
+        # Make sure they cannot log in if they have already submitted 3 wrong answers
+        if session['attempts'] > 3:
             flash(Markup('Number of incorrect login attempts exceeded. '
                          'Please click <a href="/reset">here</a> to reset.'))
             return render_template('users/login.html', form=form)
@@ -95,11 +97,13 @@ def login():
 
         # if email or password doesn't exist, we output the same message
         if (not user
+                or not user.verify_postcode(form.postcode.data)
                 or not user.verify_password(form.password.data)
                 or not user.verify_pin(form.pin.data)):
             session['attempts'] += 1
 
             # Check if login attempts have been exceeded
+            # Same code as above but makes the reset code show earlier instead of 0 attempts remaining
             if session['attempts'] >= 3:
                 flash(Markup('Number of incorrect login attempts exceeded. '
                              'Please click <a href="/reset">here</a> to reset.'))
@@ -112,16 +116,25 @@ def login():
         session['attempts'] = 0
         login_user(user)
 
-        return redirect(url_for('users.account'))
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.admin'))
+        elif current_user.role == 'user':
+            return redirect(url_for('lottery.lottery'))
+        else:
+            return redirect(url_for('users.account'))
 
     return render_template('users/login.html', form=form)
+
 
 @users_blueprint.route('/reset')
 def reset():
     session['attempts'] = 0
     return redirect(url_for('users.login'))
 
+
 @users_blueprint.route('/logout')
+@login_required
+@required_roles('user', 'admin')
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -129,6 +142,8 @@ def logout():
 
 # view user account
 @users_blueprint.route('/account')
+@login_required
+@required_roles('user', 'admin')
 def account():
     if current_user.is_anonymous:
         return render_template('users/account.html',
@@ -143,3 +158,4 @@ def account():
                            firstname=current_user.firstname,
                            lastname=current_user.lastname,
                            phone=current_user.phone)
+

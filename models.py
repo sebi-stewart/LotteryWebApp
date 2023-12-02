@@ -52,6 +52,11 @@ class User(db.Model, UserMixin):
     def verify_password(self, password):
         return self.password == password
 
+    def verify_postcode(self, postcode: str):
+        comparator = self.postcode.strip().replace(" ", "").lower()
+        # print(postcode, self.postcode, comparator)
+        return comparator == postcode.replace(" ", "").lower()
+
     def verify_pin(self, submitted_pin):
         return pyotp.TOTP(self.pin_key).verify(submitted_pin)
 

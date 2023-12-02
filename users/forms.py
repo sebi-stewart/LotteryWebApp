@@ -116,6 +116,9 @@ class LoginForm(FlaskForm):
     password = PasswordField(label='Password', validators=[
         DataRequired(message='Password is required')
     ])
+    postcode = StringField(label='Postcode', validators=[
+        DataRequired(message='Postcode is required')
+    ])
     pin = StringField(label='Pin', validators=[
         DataRequired(message='PIN is required')
     ])
