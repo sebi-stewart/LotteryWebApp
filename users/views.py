@@ -1,12 +1,13 @@
 # IMPORTS
 import pyotp
-from flask import Blueprint, render_template, flash, redirect, url_for, session
+from flask import Blueprint, render_template, flash, redirect, url_for, session, request
 from flask_login import login_user, current_user, logout_user
 from app import db, required_roles
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePasswordForm
 from markupsafe import Markup
 from datetime import datetime
+import logging
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
@@ -55,6 +56,12 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        # Add a log that a user with email ... and ip ... was registered
+        logging.warning('SECURITY - User registration [%s, %s]',
+                        form.email.data,
+                        request.remote_addr
+                        )
+
         # Adding the current users email to the session
         session['username'] = new_user.email
 
@@ -94,7 +101,6 @@ def setup_2fa():
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 @required_roles('anonymous')
 def login():
-
     # Checking amount of login attempts
     if not session.get('attempts'):
         # Login attempts
@@ -138,6 +144,13 @@ def login():
         current_user.last_login = current_user.current_login
         current_user.current_login = datetime.now()
         db.session.commit()
+
+        # Add a log that a user with ID ... email ... and IP ... has logged in
+        logging.warning('SECURITY - Log in [%s, %s, %s]',
+                        current_user.id,
+                        current_user.email.data,
+                        request.remote_addr
+                        )
 
         # Check which page he should be redirected to
         if current_user.role == 'admin':
