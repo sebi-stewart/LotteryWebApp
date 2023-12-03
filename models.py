@@ -2,7 +2,7 @@ import pyotp
 
 from app import db, app
 from flask_login import UserMixin
-
+from datetime import datetime
 
 
 class User(db.Model, UserMixin):
@@ -28,9 +28,13 @@ class User(db.Model, UserMixin):
     date_of_birth = db.Column(db.String(10), nullable=False)
     postcode = db.Column(db.String(10), nullable=False)
 
+    # Logging information
+    registered_on = db.Column(db.DateTime, nullable=False)
+    current_login = db.Column(db.DateTime, nullable=True)
+    last_login = db.Column(db.DateTime, nullable=True)
+
     # Define the relationship to Draw
     draws = db.relationship('models.Draw')
-
 
     def __init__(self, email, firstname, lastname, phone, password, role, pin_key, date_of_birth, postcode):
         self.email = email
@@ -42,6 +46,9 @@ class User(db.Model, UserMixin):
         self.pin_key = pin_key
         self.date_of_birth = date_of_birth
         self.postcode = postcode
+        self.registered_on = datetime.now()
+        self.current_login = None
+        self.last_login = None
 
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
@@ -59,6 +66,7 @@ class User(db.Model, UserMixin):
 
     def verify_pin(self, submitted_pin):
         return pyotp.TOTP(self.pin_key).verify(submitted_pin)
+
 
 class Draw(db.Model):
     __tablename__ = 'draws'
