@@ -161,12 +161,7 @@ def logout():
 @users_blueprint.route('/account')
 @required_roles('user', 'admin')
 def account():
-    return render_template('users/account.html',
-                           acc_no=current_user.id,
-                           email=current_user.email,
-                           firstname=current_user.firstname,
-                           lastname=current_user.lastname,
-                           phone=current_user.phone)
+    return render_template('users/account.html')
 
 
 @users_blueprint.route('/change_password', methods=['GET', 'POST'])
