@@ -2,11 +2,10 @@
 import pyotp
 from flask import Blueprint, render_template, flash, redirect, url_for, session
 from flask_login import login_user, current_user, logout_user
-from app import db
+from app import db, required_roles
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePasswordForm
 from markupsafe import Markup
-from roles import required_roles
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')

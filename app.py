@@ -1,9 +1,11 @@
 # IMPORTS
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_qrcode import QRcode
+from flask_login import current_user
 import os
 from dotenv import load_dotenv
+from functools import wraps
 
 
 load_dotenv()
@@ -16,6 +18,29 @@ app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RECAPTCHA_PUBLIC_KEY'] = os.environ.get('RECAPTCHA_PUBLIC_KEY')
 app.config['RECAPTCHA_PRIVATE_KEY'] = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+
+
+def required_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            #  Checks if the user is anonymous
+            if not current_user.is_authenticated:
+                # Checks if function is made for anonymous users/If anonymous isn't allowed we send them
+                # back to the login page
+                if 'anonymous' not in roles:
+                    flash('Please log in to access this page')
+                    return redirect(url_for('users.login'))
+            # If the user isn't allowed to access the page, we send him to the 403 Forbidden Error page
+            elif current_user.role not in roles:
+                return render_template('errors/403.html')
+
+            return f(*args, **kwargs)
+
+        return wrapped
+
+    return wrapper
+
 
 # initialise database
 db = SQLAlchemy(app)
