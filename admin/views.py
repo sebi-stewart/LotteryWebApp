@@ -2,6 +2,8 @@
 import random
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import current_user
+from sqlalchemy.orm import make_transient
+
 from app import db, required_roles
 from models import User, Draw
 
@@ -44,7 +46,11 @@ def generate_winning_draw():
     winning_numbers_string = winning_numbers_string[:-1]
 
     # create a new draw object.
-    new_winning_draw = Draw(user_id=current_user.id, numbers=winning_numbers_string, master_draw=True, lottery_round=lottery_round)
+    new_winning_draw = Draw(user_id=current_user.id,
+                            numbers=winning_numbers_string,
+                            master_draw=True,
+                            lottery_round=lottery_round,
+                            secret_key=current_user.secret_key)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -65,6 +71,11 @@ def view_winning_draw():
 
     # if a winning draw exists
     if current_winning_draw:
+
+        # Disconnect the draw from the database and decrypt it
+        make_transient(current_winning_draw)
+        current_winning_draw.view_draw(current_user.secret_key)
+
         # re-render admin page with current winning draw and lottery round
         return render_template('admin/admin.html', winning_draw=current_winning_draw, name=current_user.firstname)
 
@@ -96,8 +107,15 @@ def run_lottery():
             db.session.add(current_winning_draw)
             db.session.commit()
 
+            # Decrypt the winning draw
+            current_winning_draw.view_draw(current_user.secret_key)
+
             # for each unplayed user draw
             for draw in user_draws:
+
+                # Decrypt the players draw
+                player = User.query.filter_by(id=draw.user_id).first()
+                draw.view_draw(player.secret_key)
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()
