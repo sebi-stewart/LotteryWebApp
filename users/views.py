@@ -148,7 +148,7 @@ def login():
         # Add a log that a user with ID ... email ... and IP ... has logged in
         logging.warning('SECURITY - Log in [%s, %s, %s]',
                         current_user.id,
-                        current_user.email.data,
+                        current_user.email,
                         request.remote_addr
                         )
 
