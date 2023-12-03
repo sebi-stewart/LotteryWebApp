@@ -147,14 +147,14 @@ def view_all_users():
                            current_users=current_users)
 
 
-@admin_blueprint.route('')
+@admin_blueprint.route('/view_user_activity')
 @required_roles('admin')
 def view_user_activity():
     current_users = User.query.filter_by(role='user').all()
 
     return render_template('admin/admin.html',
                            name=current_user.firstname,
-                           current_user=current_users)
+                           users_activity=current_users)
 
 # view last 10 log entries
 @admin_blueprint.route('/logs')

@@ -33,6 +33,13 @@ class User(db.Model, UserMixin):
     current_login = db.Column(db.DateTime, nullable=True)
     last_login = db.Column(db.DateTime, nullable=True)
 
+    # Logging IP addresses
+    current_ip = db.Column(db.String(20), nullable=True)
+    last_ip = db.Column(db.String(20), nullable=True)
+
+    # Total number of successful logins
+    total_logins = db.Column(db.Integer)
+
     # Define the relationship to Draw
     draws = db.relationship('models.Draw')
 
@@ -49,6 +56,9 @@ class User(db.Model, UserMixin):
         self.registered_on = datetime.now()
         self.current_login = None
         self.last_login = None
+        self.current_ip = None
+        self.last_ip = None
+        self.total_logins = 0
 
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(

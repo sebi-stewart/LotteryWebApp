@@ -162,6 +162,14 @@ def login():
         # Update our current/last login variables
         current_user.last_login = current_user.current_login
         current_user.current_login = datetime.now()
+
+        # Update our current/last IP variables
+        current_user.last_ip = current_user.current_ip
+        current_user.current_ip = request.remote_addr
+
+        # Update our total login count
+        current_user.total_logins += 1
+
         db.session.commit()
 
         # Add a log that a user with ID ... email ... and IP ... has logged in
