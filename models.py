@@ -3,6 +3,15 @@ import pyotp
 from app import db, app
 from flask_login import UserMixin
 from datetime import datetime
+from cryptography.fernet import Fernet
+
+
+def encrypt(data, secret_key):
+    return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
+
+
+def decrypt(data, secret_key):
+    return Fernet(secret_key).decrypt(data).decode('utf-8')
 
 
 class User(db.Model, UserMixin):
@@ -40,6 +49,9 @@ class User(db.Model, UserMixin):
     # Total number of successful logins
     total_logins = db.Column(db.Integer)
 
+    # Encryption keys
+    secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
+
     # Define the relationship to Draw
     draws = db.relationship('models.Draw')
 
@@ -59,6 +71,7 @@ class User(db.Model, UserMixin):
         self.current_ip = None
         self.last_ip = None
         self.total_logins = 0
+
 
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
@@ -88,7 +101,7 @@ class Draw(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     # 6 draw numbers submitted
-    numbers = db.Column(db.String(100), nullable=False)
+    numbers = db.Column(db.BLOB, nullable=False)
 
     # Draw has already been played (can only play draw once)
     been_played = db.Column(db.BOOLEAN, nullable=False, default=False)
@@ -102,13 +115,16 @@ class Draw(db.Model):
     # Lottery round that draw is used
     lottery_round = db.Column(db.Integer, nullable=False, default=0)
 
-    def __init__(self, user_id, numbers, master_draw, lottery_round):
+    def __init__(self, user_id, numbers, master_draw, lottery_round, secret_key):
         self.user_id = user_id
-        self.numbers = numbers
+        self.numbers = encrypt(numbers, secret_key)
         self.been_played = False
         self.matches_master = False
         self.master_draw = master_draw
         self.lottery_round = lottery_round
+
+    def view_draw(self, secret_key):
+        self.numbers = decrypt(self.numbers, secret_key)
 
 
 def init_db():
@@ -127,6 +143,9 @@ def init_db():
 
         db.session.add(admin)
         db.session.commit()
+
+
+
 
 
 if __name__ == '__main__':
