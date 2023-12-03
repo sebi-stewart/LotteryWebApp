@@ -2,10 +2,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user
 
-from app import db
+from app import db, required_roles
 from lottery.forms import DrawForm
 from models import Draw
-from roles import required_roles
 
 # CONFIG
 lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')

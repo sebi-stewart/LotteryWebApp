@@ -2,9 +2,8 @@
 import random
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import current_user
-from app import db
+from app import db, required_roles
 from models import User, Draw
-from roles import required_roles
 
 # CONFIG
 admin_blueprint = Blueprint('admin', __name__, template_folder='templates')
