@@ -227,7 +227,7 @@ def change_password():
         if current_user.verify_password(form.current_password.data):
             # We already check if the current password matches the new one via the form
 
-            current_user.password = form.new_password.data
+            current_user.update_password(form.new_password.data)
             db.session.commit()
             flash('Password changed successfully')
 

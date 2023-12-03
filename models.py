@@ -73,7 +73,6 @@ class User(db.Model, UserMixin):
         self.last_ip = None
         self.total_logins = 0
 
-
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
             name=self.email,
@@ -82,6 +81,9 @@ class User(db.Model, UserMixin):
 
     def verify_password(self, password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password)
+
+    def update_password(self, new_password):
+        self.password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
 
     def verify_postcode(self, postcode: str):
         comparator = self.postcode.strip().replace(" ", "").lower()
@@ -144,9 +146,6 @@ def init_db():
 
         db.session.add(admin)
         db.session.commit()
-
-
-
 
 
 if __name__ == '__main__':
