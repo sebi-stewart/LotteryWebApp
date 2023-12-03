@@ -23,3 +23,6 @@
 12/03/2023 08:20:38 PM : SECURITY - Invalid login attempt [admin@email.com, 127.0.0.1]
 12/03/2023 08:20:49 PM : SECURITY - Invalid login attempt [admin@email.com, 127.0.0.1]
 12/03/2023 08:22:39 PM : SECURITY - Log in [1, admin@email.com, 127.0.0.1]
+12/03/2023 08:29:36 PM : SECURITY - Log out [admin@email.com, 127.0.0.1]
+12/03/2023 08:30:12 PM : SECURITY - Log in [1, admin@email.com, 127.0.0.1]
+12/03/2023 08:31:05 PM : SECURITY - Log out [admin@email.com, 127.0.0.1]

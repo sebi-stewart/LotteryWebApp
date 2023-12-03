@@ -1,17 +1,28 @@
+import pickle
+from datetime import datetime
+
+import bcrypt
 import pyotp
+import rsa
+from cryptography.fernet import Fernet
+from flask_login import UserMixin
 
 from app import db, app
-from flask_login import UserMixin
-from datetime import datetime
-from cryptography.fernet import Fernet
-import bcrypt
 
 
 def encrypt(data, secret_key):
+
+    # Asymmetric encryption
+    return rsa.encrypt(data.encode(), secret_key)
+    # Symmetric encryption
     return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
 
 
 def decrypt(data, secret_key):
+
+    # Asymmetric decryption
+
+    # Symmetric decryption
     return Fernet(secret_key).decrypt(data).decode('utf-8')
 
 
@@ -50,8 +61,13 @@ class User(db.Model, UserMixin):
     # Total number of successful logins
     total_logins = db.Column(db.Integer)
 
-    # Encryption keys
-    secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
+    # # Encryption keys - symmetric encryption
+    # secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
+
+    # Encryption keys - asymmetric encryption
+    publicKey = db.Column(db.BLOB, nullable=False)
+    privateKey = db.Column(db.BLOB, nullable=False)
+
 
     # Define the relationship to Draw
     draws = db.relationship('models.Draw')
@@ -72,6 +88,11 @@ class User(db.Model, UserMixin):
         self.current_ip = None
         self.last_ip = None
         self.total_logins = 0
+
+        # Encryption keys - asymmetric
+        public_key, private_key = rsa.newkeys(512)
+        self.publicKey = pickle.dumps(public_key)
+        self.privateKey = pickle.dumps(private_key)
 
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
@@ -120,6 +141,7 @@ class Draw(db.Model):
 
     def __init__(self, user_id, numbers, master_draw, lottery_round, secret_key):
         self.user_id = user_id
+        # Secret key for symmetric/Public key in the case os asymmetric encryption
         self.numbers = encrypt(numbers, secret_key)
         self.been_played = False
         self.matches_master = False
@@ -127,6 +149,7 @@ class Draw(db.Model):
         self.lottery_round = lottery_round
 
     def view_draw(self, secret_key):
+        # Secret key for symmetric/Public key in the case os asymmetric decryption
         self.numbers = decrypt(self.numbers, secret_key)
 
 

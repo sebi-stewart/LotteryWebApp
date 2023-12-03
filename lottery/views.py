@@ -1,4 +1,6 @@
 # IMPORTS
+import pickle
+
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user
 
@@ -65,7 +67,10 @@ def view_draws():
         # Decrypt our draws
         for draw in playable_draws:
             make_transient(draw)
-            draw.view_draw(current_user.secret_key)
+            # # For symmetric encryption
+            # draw.view_draw(current_user.secret_key)
+            # For asymmetric encryption
+            draw.view_draw(pickle.loads(current_user.public_key))
 
         # re-render lottery page with playable draws
         return render_template('lottery/lottery.html',
