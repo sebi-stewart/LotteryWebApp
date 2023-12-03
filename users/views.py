@@ -97,6 +97,17 @@ def setup_2fa():
             })
 
 
+# Log invalid login attempts
+@required_roles('anonymous')
+def invalid_login(user: str):
+    # Add a log that a user with  Email ... (from form) and IP ... has unsuccessfully tried to log in
+    logging.warning('SECURITY - Invalid login attempt [%s, %s]',
+                    user,
+                    request.remote_addr
+                    )
+    pass
+
+
 # view user login
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 @required_roles('anonymous')
@@ -112,6 +123,11 @@ def login():
     if form.validate_on_submit():
         # Make sure they cannot log in if they have already submitted 3 wrong answers
         if session['attempts'] > 3:
+
+            # Log this attempt, even though we don't let him log in because the user exceeded the max amount we still
+            # want make sure that this attempt is logged
+            invalid_login(form.email.data)
+
             flash(Markup('Number of incorrect login attempts exceeded. '
                          'Please click <a href="/reset">here</a> to reset.'))
             return render_template('users/login.html', form=form)
@@ -124,6 +140,9 @@ def login():
                 or not user.verify_password(form.password.data)
                 or not user.verify_pin(form.pin.data)):
             session['attempts'] += 1
+
+            # If the data was input incorrect/doesn't match the database, we log the invalid attempt
+            invalid_login(form.email.data)
 
             # Check if login attempts have been exceeded
             # Same code as above but makes the reset code show earlier instead of 0 attempts remaining
@@ -174,6 +193,13 @@ def reset():
 @required_roles('user', 'admin')
 def logout():
     logout_user()
+
+    # Add a log that a user with Email ... and IP ... has logged out
+    logging.warning('SECURITY - Log out [%s, %s]',
+                    current_user.email,
+                    request.remote_addr
+                    )
+
     return redirect(url_for('index'))
 
 

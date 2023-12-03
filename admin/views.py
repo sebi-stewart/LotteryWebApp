@@ -142,8 +142,19 @@ def run_lottery():
 def view_all_users():
     current_users = User.query.filter_by(role='user').all()
 
-    return render_template('admin/admin.html', name=current_user.firstname, current_users=current_users)
+    return render_template('admin/admin.html',
+                           name=current_user.firstname,
+                           current_users=current_users)
 
+
+@admin_blueprint.route('')
+@required_roles('admin')
+def view_user_activity():
+    current_users = User.query.filter_by(role='user').all()
+
+    return render_template('admin/admin.html',
+                           name=current_user.firstname,
+                           current_user=current_users)
 
 # view last 10 log entries
 @admin_blueprint.route('/logs')

@@ -1,5 +1,5 @@
 # IMPORTS
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_qrcode import QRcode
 from flask_login import current_user
@@ -57,6 +57,16 @@ def required_roles(*roles):
                     return redirect(url_for('users.login'))
             # If the user isn't allowed to access the page, we send him to the 403 Forbidden Error page
             elif current_user.role not in roles:
+
+                # Add a log that a user with ID ... email ... role ... and IP ... has tried accessing an
+                # unauthorized page
+                logging.warning('SECURITY - Unauthorized Access Attempt [%s, %s, %s, %s]',
+                                current_user.id,
+                                current_user.email,
+                                current_user.role,
+                                request.remote_addr
+                                )
+
                 return render_template('errors/403.html')
 
             return f(*args, **kwargs)
