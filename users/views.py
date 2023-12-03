@@ -161,13 +161,6 @@ def logout():
 @users_blueprint.route('/account')
 @required_roles('user', 'admin')
 def account():
-    if current_user.is_anonymous:
-        return render_template('users/account.html',
-                               acc_no="PLACEHOLDER FOR USER ID",
-                               email="PLACEHOLDER FOR USER EMAIL",
-                               firstname="PLACEHOLDER FOR USER FIRSTNAME",
-                               lastname="PLACEHOLDER FOR USER LASTNAME",
-                               phone="PLACEHOLDER FOR USER PHONE")
     return render_template('users/account.html',
                            acc_no=current_user.id,
                            email=current_user.email,
