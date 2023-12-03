@@ -6,8 +6,32 @@ from flask_login import current_user
 import os
 from dotenv import load_dotenv
 from functools import wraps
+import logging
 
 
+# Get our filter, we only want messages that include the word SECURITY
+class SecurityFilter(logging.Filter):
+    def filter(self, record):
+        return 'SECURITY' in record.getMessage()
+
+
+# Our general logger
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+# File handler for saving into lottery.log
+file_handler = logging.FileHandler('lottery.log', 'a')
+file_handler.setLevel(logging.WARNING)
+file_handler.addFilter(SecurityFilter())
+
+# How we want our logs formatted
+formatter = logging.Formatter('%(asctime)s : %(message)s', '%m/%d/%Y %I:%M:%S %p')
+file_handler.setFormatter(formatter)
+
+# Adding our filehandler to our logger
+logger.addHandler(file_handler)
+
+# Load up our .env file
 load_dotenv()
 
 # CONFIG
@@ -81,24 +105,26 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-
-
 # Error handling for Errors: 400,403,404,500,503
 @app.errorhandler(400)
 def bad_request(error):
     return render_template('errors/400.html'), 404
 
+
 @app.errorhandler(403)
 def forbidden(error):
     return render_template('errors/403.html'), 404
+
 
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('errors/404.html'), 404
 
+
 @app.errorhandler(500)
 def internal_server_error(error):
     return render_template('errors/500.html'), 404
+
 
 @app.errorhandler(503)
 def service_unavailable(error):
