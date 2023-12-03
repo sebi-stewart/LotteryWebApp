@@ -101,7 +101,7 @@
     </div>
 </div>
 
-<div class="column is-10 is-offset-1">
+<div class="column is-12 is-offset-0">
     <h4 class="title is-4">User Activity Logs</h4>
     <div class="box">
         {% if users_activity %}
@@ -113,9 +113,9 @@
                         <th>Registration Date/Time</th>
                         <th>Current Login Date/Time</th>
                         <th>Previous Login Date/Time</th>
-                        <th>Current Login IP-Address</th>
-                        <th>Previous Login IP-Address</th>
-                        <th>Total Successful Logins</th>
+                        <th>Current IP</th>
+                        <th>Previous IP</th>
+                        <th>Total Logins</th>
                     </tr>
                     {% for user in users_activity %}
                         <tr>

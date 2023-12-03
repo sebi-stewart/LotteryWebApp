@@ -200,13 +200,12 @@ def reset():
 @users_blueprint.route('/logout')
 @required_roles('user', 'admin')
 def logout():
-    logout_user()
-
     # Add a log that a user with Email ... and IP ... has logged out
     logging.warning('SECURITY - Log out [%s, %s]',
                     current_user.email,
                     request.remote_addr
                     )
+    logout_user()
 
     return redirect(url_for('index'))
 
