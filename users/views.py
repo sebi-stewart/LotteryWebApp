@@ -6,6 +6,7 @@ from app import db, required_roles
 from models import User
 from users.forms import RegisterForm, LoginForm, ChangePasswordForm
 from markupsafe import Markup
+from datetime import datetime
 
 # CONFIG
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
@@ -129,9 +130,16 @@ def login():
                   '{} login attempts remaining'.format(3 - session.get('attempts')))
             return render_template('users/login.html', form=form)
 
-        session['attempts'] = 0
+        # Log in the user and reset our login attempts
         login_user(user)
+        session['attempts'] = 0
 
+        # Update our current/last login variables
+        current_user.last_login = current_user.current_login
+        current_user.current_login = datetime.now()
+        db.session.commit()
+
+        # Check which page he should be redirected to
         if current_user.role == 'admin':
             return redirect(url_for('admin.admin'))
         elif current_user.role == 'user':
