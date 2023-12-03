@@ -1,8 +1,35 @@
 import re
 
 from flask_wtf import FlaskForm, RecaptchaField
-from wtforms import StringField, SubmitField, PasswordField
+from wtforms import StringField, SubmitField, PasswordField, BooleanField
 from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
+
+
+def check_password(form, password):
+    # Checks for digit, lowercase, uppercase, special character
+    mistakes = []
+    error = False
+
+    if not re.search("[0-9]", password.data):
+        mistakes.append("a number")
+        error = True
+    if not re.search("[a-z]", password.data):
+        mistakes.append("a lowercase letter")
+        error = True
+    if not re.search("[A-Z]", password.data):
+        mistakes.append("an uppercase letter")
+        error = True
+    if not re.search("[^a-zA-Z\d\s]", password.data):
+        mistakes.append("a special character")
+        error = True
+    # Return none if it contains whitespace
+    if not not re.search("\s", password.data):
+        raise ValidationError("Password invalid, must not contain whitespace")
+
+    output_message = ", ".join(mistakes)
+
+    if error:
+        raise ValidationError("Password invalid, must contain " + output_message)
 
 
 class RegisterForm(FlaskForm):
@@ -25,12 +52,13 @@ class RegisterForm(FlaskForm):
 
     password = PasswordField(label='Password', validators=[
         DataRequired(message='Password is required'),
-        Length(min=6, max=12, message='Password must be between 6 and 12 characters long')
+        Length(min=6, max=12, message='Password must be between 6 and 12 characters long'),
+        check_password
     ])
 
     confirm_password = PasswordField(label='Confirm Password', validators=[
         DataRequired(message='Confirm Password is required'),
-        EqualTo('password', message='Both password fields must be equal')
+        EqualTo('password', message='Both password fields must match')
     ])
 
     date_of_birth = StringField(label='Date of Birth', validators=[
@@ -57,32 +85,6 @@ class RegisterForm(FlaskForm):
         pattern = re.compile("^[0-9]{4}-[0-9]{3}-[0-9]{4}$")
         if not pattern.match(phone.data):
             raise ValidationError('Phone number invalid, must be in format XXXX-XXX-XXXX')
-
-    def validate_password(self, password):
-        # Checks for digit, lowercase, uppercase, special character
-        mistakes = []
-        error = False
-
-        if not re.search("[0-9]", password.data):
-            mistakes.append("a number")
-            error = True
-        if not re.search("[a-z]", password.data):
-            mistakes.append("a lowercase letter")
-            error = True
-        if not re.search("[A-Z]", password.data):
-            mistakes.append("an uppercase letter")
-            error = True
-        if not re.search("[^a-zA-Z\d\s]", password.data):
-            mistakes.append("a special character")
-            error = True
-        # Return none if it contains whitespace
-        if not not re.search("\s", password.data):
-            raise ValidationError("Password invalid, must not contain whitespace")
-
-        output_message = ", ".join(mistakes)
-
-        if error:
-            raise ValidationError("Password invalid, must contain " + output_message)
 
     def validate_date_of_birth(self, date_of_birth):
         # Checks format
@@ -125,3 +127,28 @@ class LoginForm(FlaskForm):
     reCaptcha = RecaptchaField()
     submit = SubmitField()
 
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField(label='Current Password', id='password', validators=[
+        DataRequired(message='Current Password is required')
+    ])
+
+    new_password = PasswordField(label='New Password', validators=[
+        DataRequired(message='New Password is required'),
+        Length(min=6, max=12, message='Password must be between 6 and 12 characters long'),
+        check_password
+    ])
+
+    confirm_password = PasswordField(label='Confirm Password', validators=[
+        DataRequired(message='Confirm Password is required'),
+        EqualTo('new_password', message='Both password fields must match')
+    ])
+
+    show_password = BooleanField(label='Show Password', id='check')
+
+    submit = SubmitField()
+
+    def validate_new_password(self, new_password):
+        # Make sure that the old and new password aren't the same
+        if new_password.data == self.current_password.data:
+            raise ValidationError("Your new password, cannot match you current password")

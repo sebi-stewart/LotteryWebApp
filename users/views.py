@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, session
 from flask_login import login_user, current_user, logout_user
 from app import db
 from models import User
-from users.forms import RegisterForm, LoginForm
+from users.forms import RegisterForm, LoginForm, ChangePasswordForm
 from markupsafe import Markup
 from roles import required_roles
 
@@ -94,12 +94,13 @@ def setup_2fa():
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 @required_roles('anonymous')
 def login():
-    # Creating login form
 
+    # Checking amount of login attempts
     if not session.get('attempts'):
         # Login attempts
         session['attempts'] = 0
 
+    # Creating login form
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -174,3 +175,23 @@ def account():
                            lastname=current_user.lastname,
                            phone=current_user.phone)
 
+
+@users_blueprint.route('/change_password', methods=['GET', 'POST'])
+@required_roles('user', 'admin')
+def change_password():
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        # Make sure the current password matches the database
+        if current_user.verify_password(form.current_password.data):
+            # We already check if the current password matches the new one via the form
+
+            current_user.password = form.new_password.data
+            db.session.commit()
+            flash('Password changed successfully')
+
+            return redirect(url_for('users.account'))
+
+        flash('Current Password was Incorrect')
+
+    return render_template('users/change_password.html', form=form)

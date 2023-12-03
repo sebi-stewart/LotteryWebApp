@@ -10,7 +10,7 @@ load_dotenv()
 
 # CONFIG
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'LONG AND SECRET KEY'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lottery.db'
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
