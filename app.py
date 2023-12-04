@@ -81,7 +81,24 @@ def required_roles(*roles):
 db = SQLAlchemy(app)
 
 # Create our security headers
-# talisman = Talisman(app)
+csp = {'default-src': [
+        '\'self\'',
+        'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'
+    ],
+    'frame-src': [
+        '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://recaptcha.google.com/recaptcha/'
+    ],
+    'script-src': [
+        '\'self\'',
+        '\'unsafe-inline\'',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/'],
+    'img-src': [
+        'data:'
+    ]}
+talisman = Talisman(app, content_security_policy=csp)
 
 # Initialize QR Code
 qrcode = QRcode(app)
@@ -105,15 +122,16 @@ app.register_blueprint(users_blueprint)
 app.register_blueprint(admin_blueprint)
 app.register_blueprint(lottery_blueprint)
 
-
 # Login Manager
 from flask_login import LoginManager
+
 login_manager = LoginManager()
 login_manager.login_view = 'users.login'
 login_manager.init_app(app)
 
-
 from models import User
+
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -146,6 +164,5 @@ def service_unavailable(error):
 
 
 if __name__ == "__main__":
-
     # Run it as HTTPS
     app.run(ssl_context=('cert.pem', 'key.pem'))
