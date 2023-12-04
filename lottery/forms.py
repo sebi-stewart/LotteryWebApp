@@ -1,6 +1,7 @@
+from flask import flash
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, SubmitField
-from wtforms.validators import NumberRange, InputRequired
+from wtforms.validators import NumberRange, InputRequired, ValidationError
 
 
 class DrawForm(FlaskForm):
@@ -29,3 +30,28 @@ class DrawForm(FlaskForm):
         NumberRange(min=1, max=60)
     ])
     submit = SubmitField("Submit Draw")
+
+    def validate(self, **kwargs):
+        standard_validators = FlaskForm.validate(self)
+        if standard_validators:
+            numbers = [self.number1.data, self.number2.data, self.number3.data,
+                       self.number4.data, self.number5.data, self.number6.data]
+            checker = {}
+
+            for num in numbers:
+                print(not checker.get(num))
+                if not checker.get(num):
+                    checker[num] = 1
+                else:
+                    flash('All numbers must be unique!')
+                    return False
+
+            last_num = 0
+            for current_num in numbers:
+                if current_num < last_num:
+                    flash('The numbers must be in ascending order!')
+                    return False
+                last_num = current_num
+
+            return True
+        return False
