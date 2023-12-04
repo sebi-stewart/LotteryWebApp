@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from functools import wraps
 import logging
+from flask_talisman import Talisman
 
 
 # Get our filter, we only want messages that include the word SECURITY
@@ -37,9 +38,9 @@ load_dotenv()
 # CONFIG
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lottery.db'
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_ECHO'] = os.environ.get('SQLALCHEMY_ECHO')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS')
 app.config['RECAPTCHA_PUBLIC_KEY'] = os.environ.get('RECAPTCHA_PUBLIC_KEY')
 app.config['RECAPTCHA_PRIVATE_KEY'] = os.environ.get('RECAPTCHA_PRIVATE_KEY')
 
@@ -78,6 +79,9 @@ def required_roles(*roles):
 
 # initialise database
 db = SQLAlchemy(app)
+
+# Create our security headers
+# talisman = Talisman(app)
 
 # Initialize QR Code
 qrcode = QRcode(app)
@@ -143,4 +147,5 @@ def service_unavailable(error):
 
 if __name__ == "__main__":
 
-    app.run()
+    # Run it as HTTPS
+    app.run(ssl_context=('cert.pem', 'key.pem'))
