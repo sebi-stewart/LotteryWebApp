@@ -13,7 +13,7 @@ from app import db, app
 def encrypt(data, secret_key):
 
     # Asymmetric encryption
-    return rsa.encrypt(data.encode(), secret_key)
+    return rsa.encrypt(data.encode(), pickle.loads(secret_key))
     # # Symmetric encryption
     # return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
 
@@ -21,7 +21,7 @@ def encrypt(data, secret_key):
 def decrypt(data, secret_key):
 
     # Asymmetric decryption
-    return rsa.decrypt(data, secret_key).decode()
+    return rsa.decrypt(data, pickle.loads(secret_key)).decode()
     # # Symmetric decryption
     # return Fernet(secret_key).decrypt(data).decode('utf-8')
 
@@ -65,8 +65,8 @@ class User(db.Model, UserMixin):
     # secret_key = db.Column(db.BLOB, nullable=False, default=Fernet.generate_key())
 
     # Encryption keys - asymmetric encryption
-    publicKey = db.Column(db.BLOB, nullable=False)
-    privateKey = db.Column(db.BLOB, nullable=False)
+    public_key = db.Column(db.BLOB, nullable=False)
+    private_key = db.Column(db.BLOB, nullable=False)
 
 
     # Define the relationship to Draw
@@ -91,8 +91,8 @@ class User(db.Model, UserMixin):
 
         # Encryption keys - asymmetric
         public_key, private_key = rsa.newkeys(512)
-        self.publicKey = pickle.dumps(public_key)
-        self.privateKey = pickle.dumps(private_key)
+        self.public_key = pickle.dumps(public_key)
+        self.private_key = pickle.dumps(private_key)
 
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(

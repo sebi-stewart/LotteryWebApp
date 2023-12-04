@@ -1,5 +1,4 @@
 # IMPORTS
-import pickle
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user
@@ -20,7 +19,7 @@ def decrypt_draws(draws):
         # # For symmetric encryption
         # draw.view_draw(current_user.secret_key)
         # For asymmetric encryption
-        draw.view_draw(pickle.loads(current_user.private_key))
+        draw.view_draw(current_user.private_key)
 
 # VIEWS
 # view lottery page
@@ -55,7 +54,7 @@ def create_draw():
                         numbers=submitted_numbers,
                         master_draw=False,
                         lottery_round=0,
-                        secret_key=current_user.publicKey)
+                        secret_key=current_user.public_key)
         # add the new draw to the database
         db.session.add(new_draw)
         db.session.commit()
