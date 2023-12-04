@@ -34,3 +34,4 @@
 12/04/2023 01:51:45 PM : SECURITY - Log out [sebastian@gmail.com, 127.0.0.1]
 12/04/2023 01:52:26 PM : SECURITY - Log in [1, admin@email.com, 127.0.0.1]
 12/04/2023 01:52:47 PM : SECURITY - Log out [admin@email.com, 127.0.0.1]
+12/04/2023 02:04:37 PM : SECURITY - Log in [2, sebastian@gmail.com, 127.0.0.1]

@@ -100,8 +100,6 @@ def check_draws():
 
     # if played draws exist
     if len(played_draws) != 0:
-        # Decrypt our draws
-        decrypt_draws(played_draws)
 
         return render_template('lottery/lottery.html',
                                results=played_draws,
