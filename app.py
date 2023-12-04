@@ -98,6 +98,7 @@ csp = {'default-src': [
     'img-src': [
         'data:'
     ]}
+# Adding the security headers to the content_security_policy of our website
 talisman = Talisman(app, content_security_policy=csp)
 
 # Initialize QR Code
@@ -164,5 +165,5 @@ def service_unavailable(error):
 
 
 if __name__ == "__main__":
-    # Run it as HTTPS
+    # Run it as HTTPS by using the following certificates:
     app.run(ssl_context=('cert.pem', 'key.pem'))
