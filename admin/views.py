@@ -45,12 +45,18 @@ def generate_winning_draw():
         winning_numbers_string += str(winning_numbers[i]) + ' '
     winning_numbers_string = winning_numbers_string[:-1]
 
-    # create a new draw object.
+    # # create a new draw object with symmetric encryption.
+    # new_winning_draw = Draw(user_id=current_user.id,
+    #                         numbers=winning_numbers_string,
+    #                         master_draw=True,
+    #                         lottery_round=lottery_round,
+    #                         secret_key=current_user.secret_key)
+    # create a new draw object with asymmetric encryption.
     new_winning_draw = Draw(user_id=current_user.id,
                             numbers=winning_numbers_string,
                             master_draw=True,
                             lottery_round=lottery_round,
-                            secret_key=current_user.secret_key)
+                            secret_key=current_user.public_key)
 
     # add the new winning draw to the database
     db.session.add(new_winning_draw)
@@ -74,7 +80,12 @@ def view_winning_draw():
 
         # Disconnect the draw from the database and decrypt it
         make_transient(current_winning_draw)
-        current_winning_draw.view_draw(current_user.secret_key)
+
+        # # Symmetric encryption
+        # current_winning_draw.view_draw(current_user.secret_key)
+
+        # Asymmetric encryption
+        current_winning_draw.view_draw(current_user.private_key)
 
         # re-render admin page with current winning draw and lottery round
         return render_template('admin/admin.html', winning_draw=current_winning_draw, name=current_user.firstname)
@@ -107,15 +118,21 @@ def run_lottery():
             db.session.add(current_winning_draw)
             db.session.commit()
 
-            # Decrypt the winning draw
-            current_winning_draw.view_draw(current_user.secret_key)
+            # # Decrypt the winning draw - symmetric
+            # current_winning_draw.view_draw(current_user.secret_key)
+            # Decrypt - asymmetric
+            current_winning_draw.view_draw(current_user.private_key)
 
             # for each unplayed user draw
             for draw in user_draws:
 
                 # Decrypt the players draw
                 player = User.query.filter_by(id=draw.user_id).first()
-                draw.view_draw(player.secret_key)
+
+                # # Symmetric encryption
+                # draw.view_draw(player.secret_key)
+                # Asymmetric encryption
+                draw.view_draw(player.private_key)
 
                 # get the owning user (instance/object)
                 user = User.query.filter_by(id=draw.user_id).first()

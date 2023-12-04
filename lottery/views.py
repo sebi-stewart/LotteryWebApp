@@ -13,6 +13,15 @@ from sqlalchemy.orm import make_transient
 lottery_blueprint = Blueprint('lottery', __name__, template_folder='templates')
 
 
+@required_roles('user')
+def decrypt_draws(draws):
+    for draw in draws:
+        make_transient(draw)
+        # # For symmetric encryption
+        # draw.view_draw(current_user.secret_key)
+        # For asymmetric encryption
+        draw.view_draw(pickle.loads(current_user.private_key))
+
 # VIEWS
 # view lottery page
 @lottery_blueprint.route('/lottery')
@@ -35,12 +44,18 @@ def create_draw():
                           + str(form.number4.data) + ' '
                           + str(form.number5.data) + ' '
                           + str(form.number6.data))
-        # create a new draw with the form data.
+        # # create a new draw with the form data. # Symmetric encryption
+        # new_draw = Draw(user_id=current_user.id,
+        #                 numbers=submitted_numbers,
+        #                 master_draw=False,
+        #                 lottery_round=0,
+        #                 secret_key=current_user.secret_key)
+        # create a new draw with the form data. # asymmetric encryption
         new_draw = Draw(user_id=current_user.id,
                         numbers=submitted_numbers,
                         master_draw=False,
                         lottery_round=0,
-                        secret_key=current_user.secret_key)
+                        secret_key=current_user.publicKey)
         # add the new draw to the database
         db.session.add(new_draw)
         db.session.commit()
@@ -65,12 +80,7 @@ def view_draws():
     # if playable draws exist
     if len(playable_draws) != 0:
         # Decrypt our draws
-        for draw in playable_draws:
-            make_transient(draw)
-            # # For symmetric encryption
-            # draw.view_draw(current_user.secret_key)
-            # For asymmetric encryption
-            draw.view_draw(pickle.loads(current_user.public_key))
+        decrypt_draws(playable_draws)
 
         # re-render lottery page with playable draws
         return render_template('lottery/lottery.html',
@@ -92,9 +102,7 @@ def check_draws():
     # if played draws exist
     if len(played_draws) != 0:
         # Decrypt our draws
-        for draw in played_draws:
-            make_transient(draw)
-            draw.view_draw(current_user.secret_key)
+        decrypt_draws(played_draws)
 
         return render_template('lottery/lottery.html',
                                results=played_draws,

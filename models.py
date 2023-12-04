@@ -14,16 +14,16 @@ def encrypt(data, secret_key):
 
     # Asymmetric encryption
     return rsa.encrypt(data.encode(), secret_key)
-    # Symmetric encryption
-    return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
+    # # Symmetric encryption
+    # return Fernet(secret_key).encrypt(bytes(data, 'utf-8'))
 
 
 def decrypt(data, secret_key):
 
     # Asymmetric decryption
-
-    # Symmetric decryption
-    return Fernet(secret_key).decrypt(data).decode('utf-8')
+    return rsa.decrypt(data, secret_key).decode()
+    # # Symmetric decryption
+    # return Fernet(secret_key).decrypt(data).decode('utf-8')
 
 
 class User(db.Model, UserMixin):
@@ -149,7 +149,7 @@ class Draw(db.Model):
         self.lottery_round = lottery_round
 
     def view_draw(self, secret_key):
-        # Secret key for symmetric/Public key in the case os asymmetric decryption
+        # Secret key for symmetric/Private key in the case os asymmetric decryption
         self.numbers = decrypt(self.numbers, secret_key)
 
 
