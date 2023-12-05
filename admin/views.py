@@ -182,6 +182,7 @@ def view_all_users():
                            current_users=current_users)
 
 
+# View user activity
 @admin_blueprint.route('/view_user_activity')
 @required_roles('admin')
 def view_user_activity():

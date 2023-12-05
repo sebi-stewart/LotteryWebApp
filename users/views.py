@@ -82,7 +82,7 @@ def setup_2fa():
     if 'username' not in session:
         return redirect('/')
 
-    # Check if the
+    # Check if the user has been registered
     user = User.query.filter_by(email=session['username']).first()
     if not user:
         return redirect('/')
@@ -227,6 +227,7 @@ def change_password():
         if current_user.verify_password(form.current_password.data):
             # We already check if the current password matches the new one via the form
 
+            # Update the password
             current_user.update_password(form.new_password.data)
             db.session.commit()
             flash('Password changed successfully')

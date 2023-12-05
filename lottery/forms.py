@@ -32,8 +32,11 @@ class DrawForm(FlaskForm):
     submit = SubmitField("Submit Draw")
 
     def validate(self, **kwargs):
+        # Check our standard validators
         standard_validators = FlaskForm.validate(self)
         if standard_validators:
+
+            # Check that no number is the same using a dictionary
             numbers = [self.number1.data, self.number2.data, self.number3.data,
                        self.number4.data, self.number5.data, self.number6.data]
             checker = {}
@@ -46,6 +49,7 @@ class DrawForm(FlaskForm):
                     flash('All numbers must be unique!')
                     return False
 
+            # Check that each consecutive number is larger than the last
             last_num = 0
             for current_num in numbers:
                 if current_num < last_num:

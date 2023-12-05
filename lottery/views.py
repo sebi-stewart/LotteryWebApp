@@ -21,6 +21,7 @@ def decrypt_draws(draws):
         # For asymmetric encryption
         draw.view_draw(current_user.private_key)
 
+
 # VIEWS
 # view lottery page
 @lottery_blueprint.route('/lottery')
@@ -38,11 +39,11 @@ def create_draw():
 
     if form.validate_on_submit():
         submitted_numbers = (str(form.number1.data) + ' '
-                          + str(form.number2.data) + ' '
-                          + str(form.number3.data) + ' '
-                          + str(form.number4.data) + ' '
-                          + str(form.number5.data) + ' '
-                          + str(form.number6.data))
+                             + str(form.number2.data) + ' '
+                             + str(form.number3.data) + ' '
+                             + str(form.number4.data) + ' '
+                             + str(form.number5.data) + ' '
+                             + str(form.number6.data))
         # # create a new draw with the form data. # Symmetric encryption
         # new_draw = Draw(user_id=current_user.id,
         #                 numbers=submitted_numbers,

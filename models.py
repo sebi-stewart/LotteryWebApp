@@ -94,23 +94,29 @@ class User(db.Model, UserMixin):
         self.public_key = pickle.dumps(public_key)
         self.private_key = pickle.dumps(private_key)
 
+    # Return a key to be input to either QR-Code or into the authentication app
     def get_2fa_uri(self):
         return str(pyotp.totp.TOTP(self.pin_key).provisioning_uri(
             name=self.email,
             issuer_name='Stewart Foundation')
         )
 
+    # Check if the password is correct
     def verify_password(self, password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password)
 
+    # Update the password with Hashing :)
     def update_password(self, new_password):
         self.password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
 
+    # Make sure two postcodes are the same (I account for user error for example he adds whitespace/
+    # doesn't add the space in between or uses lowercase characters
     def verify_postcode(self, postcode: str):
         comparator = self.postcode.strip().replace(" ", "").lower()
         # print(postcode, self.postcode, comparator)
         return comparator == postcode.replace(" ", "").lower()
 
+    # Checks the time based pin against what it should be
     def verify_pin(self, submitted_pin):
         return pyotp.TOTP(self.pin_key).verify(submitted_pin)
 
