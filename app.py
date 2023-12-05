@@ -95,11 +95,17 @@ csp = {'default-src': [
         '\'unsafe-inline\'',
         'https://www.google.com/recaptcha/',
         'https://www.gstatic.com/recaptcha/'],
+    'style-src': [
+        '\'self\'',
+        '\'unsafe-inline\'',
+        'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css'
+    ],
     'img-src': [
         'data:'
     ]}
 # Adding the security headers to the content_security_policy of our website
-talisman = Talisman(app, content_security_policy=csp)
+talisman = Talisman(app,
+                    content_security_policy=csp)
 
 # Initialize QR Code
 qrcode = QRcode(app)

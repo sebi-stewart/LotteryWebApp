@@ -122,7 +122,7 @@ def login():
 
     if form.validate_on_submit():
         # Make sure they cannot log in if they have already submitted 3 wrong answers
-        if session['attempts'] > 3:
+        if session['attempts'] >= 3:
 
             # Log this attempt, even though we don't let him log in because the user exceeded the max amount we still
             # want make sure that this attempt is logged
