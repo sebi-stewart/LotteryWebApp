@@ -72,13 +72,13 @@ class RegisterForm(FlaskForm):
     submit = SubmitField(label='Submit')
 
     def validate_firstname(self, firstname):
-        pattern = re.compile("[^*?!'^+%&/()=}\]\[{$#@<>]")
-        if not pattern.match(firstname.data):
+        pattern = re.compile("[*?!'^+%&/()=}\]\[{$#@<>]")
+        if not not pattern.search(firstname.data):
             raise ValidationError('First Name cannot contain special characters')
 
     def validate_lastname(self, lastname):
-        pattern = re.compile("[^*?!'^+%&/()=}\]\[{$#@<>]")
-        if not pattern.match(lastname.data):
+        pattern = re.compile("[*?!'^+%&/()=}\]\[{$#@<>]")
+        if not not pattern.search(lastname.data):
             raise ValidationError('First Name cannot contain special characters')
 
     def validate_phone(self, phone):
@@ -92,18 +92,18 @@ class RegisterForm(FlaskForm):
             raise ValidationError('Date of birth invalid, must be in format DD/MM/YYYY')
 
     def validate_postcode(self, postcode):
-        error = False
+        error = True
         # Checks format
         if not not re.search('(^[A-Z]{1}[0-9]{1} [0-9]{1}[A-Z]{2}$)', postcode.data):
-            error = True
+            error = False
 
         # Check for the format 2
         if not not re.search('(^[A-Z]{1}[0-9]{2} [0-9]{1}[A-Z]{2}$)', postcode.data):
-            error = True
+            error = False
 
         # Check for the format 3
         if not not re.search('(^[A-Z]{2}[0-9]{1} [0-9]{1}[A-Z]{2}$)', postcode.data):
-            error = True
+            error = False
 
         if error:
             raise ValidationError("Postcode invalid, must be in format 'XY YXX', 'XYY YXX' or 'XXY YXX' "
